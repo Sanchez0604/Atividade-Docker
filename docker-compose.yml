@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    volumes:
+      - uploads:/app-data/uploads
+    env_file:
+      - ./.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./nginx/html:/usr/share/nginx/html
+      - ./nginx/app.conf:/etc/nginx/conf.d/app.conf
+      - uploads:/app-data/uploads:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+volumes:
+  postgres_data:
+  uploads:

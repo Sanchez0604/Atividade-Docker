@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF--8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Arquivos</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #eef;
+            padding-bottom: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            width: calc(100% - 120px);
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #refresh-button {
+            background-color: #28a745;
+            margin-bottom: 15px;
+        }
+        #refresh-button:hover {
+            background-color: #218838;
+        }
+        #upload-status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .status-success { color: #28a745; }
+        .status-error { color: #dc3545; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        thead {
+            background-color: #007bff;
+            color: white;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gerenciador de Arquivos</h1>
+
+        <section id="upload-section">
+            <h2>Fazer Upload de Novo Arquivo</h2>
+            <form id="upload-form">
+                <input type="file" id="file-input" name="arquivo" required>
+                <button type="submit">Enviar</button>
+            </form>
+            <div id="upload-status"></div>
+        </section>
+
+        <section id="list-section">
+            <h2>Arquivos Salvos</h2>
+            <button id="refresh-button">Atualizar Lista</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Caminho</th>
+                        <th>Data do Upload</th>
+                    </tr>
+                </thead>
+                <tbody id="file-list-body">
+                    </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        // URL base da API. Altere a porta se necessário.
+        const API_URL = 'http://localhost/api';
+
+        
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const uploadStatus = document.getElementById('upload-status');
+        const fileListBody = document.getElementById('file-list-body');
+        const refreshButton = document.getElementById('refresh-button');
+
+                async function listarArquivos() {
+            try {
+                const response = await fetch(`${API_URL}/`);
+                if (!response.ok) {
+                    throw new Error(`Erro na rede: ${response.statusText}`);
+                }
+                const arquivos = await response.json();
+
+                
+                fileListBody.innerHTML = '';
+
+                if (arquivos.length === 0) {
+                    fileListBody.innerHTML = '<tr><td colspan="4">Nenhum arquivo encontrado.</td></tr>';
+                    return;
+                }
+
+                arquivos.forEach(arquivo => {
+                    const row = document.createElement('tr');
+
+                    
+                    const dataUploadFormatada = new Date(arquivo.dataUpload).toLocaleString('pt-BR');
+
+                    row.innerHTML = `
+                        <td>${arquivo.id}</td>
+                        <td>${arquivo.nome}</td>
+                        <td>${arquivo.caminho}</td>
+                        <td>${dataUploadFormatada}</td>
+                    `;
+                    fileListBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Falha ao buscar arquivos:', error);
+                fileListBody.innerHTML = `<tr><td colspan="4" style="color: red;">Erro ao carregar arquivos: ${error.message}</td></tr>`;
+            }
+        }
+
+                async function handleUpload(event) {
+            event.preventDefault(); 
+
+            const file = fileInput.files[0];
+            if (!file) {
+                uploadStatus.textContent = 'Por favor, selecione um arquivo.';
+                uploadStatus.className = 'status-error';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('arquivo', file); 
+
+            uploadStatus.textContent = 'Enviando...';
+            uploadStatus.className = '';
+
+            try {
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData,
+                    // Não defina o 'Content-Type', o navegador fará isso automaticamente com o boundary correto para multipart/form-data
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro no envio: ${response.statusText}`);
+                }
+
+                uploadStatus.textContent = 'Arquivo enviado com sucesso!';
+                uploadStatus.className = 'status-success';
+                
+                uploadForm.reset(); // Limpa o formulário
+                await listarArquivos(); // Atualiza a lista automaticamente
+
+            } catch (error) {
+                console.error('Falha no upload:', error);
+                uploadStatus.textContent = `Falha no upload: ${error.message}`;
+                uploadStatus.className = 'status-error';
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', listarArquivos);
+
+        uploadForm.addEventListener('submit', handleUpload);
+
+
+        refreshButton.addEventListener('click', listarArquivos);
+    </script>
+</body>
+</html>
