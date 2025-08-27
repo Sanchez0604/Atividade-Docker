@@ -1,15 +1,19 @@
 **Gerenciador de Arquivos - Aplicação Java com Docker**
 
-Este projeto consiste em uma aplicação web para upload e listagem de arquivos, desenvolvida em Java com Spring Boot. A aplicação foi projetada para rodar em container usando Docker e Docker Compose, seguindo uma lista de requisitos pedidos em uma atividade de computação em nuvem e pronta para produção.
+Este projeto consiste em uma aplicação web para upload e listagem de arquivos, desenvolvida em Java com Spring Boot. A aplicação foi projetada para rodar em container usando Docker e Docker Compose, seguindo uma lista de requisitos pedidos em uma atividade de computação em nuvem. Essa projeto já se pronto para produção.
 
 **Pré-requisitos**
+
 Antes de começar, certifique-se de que você tem as seguintes ferramentas instaladas em sua máquina:
--Docker
--Docker Compose
+
+**-Docker**
+
+**-Docker Compose**
 
 **Como Executar**
 
 Siga os passos abaixo para clonar e executar a aplicação localmente.
+
 **1. Clone o Repositório**
 ```
 git clone https://github.com/Sanchez0604/Atividade-Docker.git
@@ -28,7 +32,7 @@ Agora, adicione o seguinte conteúdo ao arquivo .env.
 POSTGRES_DB=<nome do banco>
 POSTGRES_USER=<usuario>
 POSTGRES_PASSWORD=<senha>
-POSTGRES_HOST=db
+POSTGRES_HOST=db  <- Se quiser mudar o nome do host, será necessário alterar também no docker-compose.yml
 POSTGRES_PORT=5432
 ```
 **3. Construa as Imagens e Suba os Containers**
@@ -45,9 +49,10 @@ POSTGRES_PORT=5432
    ```docker-compose down```
 
 **Endpoints da API**
+
 A aplicação expõe os seguintes endpoints:
 
-#Método | Rota     Descrição
-**POST**    | /upload  Realiza o upload  
-        |          de um novo arquivo.
-**GET**     | /        Retorna uma lista com todos os arquivos.
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| POST | `/upload` | Realiza o upload de um novo arquivo. |
+| GET | `/` | Retorna uma lista com todos os arquivos. |
